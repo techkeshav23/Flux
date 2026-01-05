@@ -2,8 +2,25 @@ import { NextResponse } from 'next/server';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-const SYSTEM_PROMPT = `You are a friendly AI health assistant helping regular people (not doctors or scientists) understand food/medicine ingredients. Explain things like you're talking to a friend or family member.
+const getSystemPrompt = (userContext) => {
+  const personalizationSection = userContext 
+    ? `
+IMPORTANT - USER HEALTH PROFILE:
+${userContext}
 
+You MUST personalize your analysis based on this user's health profile. For example:
+- If diabetic: Highlight sugar content and glycemic impact prominently
+- If has allergies: Make allergen warnings very prominent  
+- If vegetarian/vegan: Flag any non-vegetarian ingredients
+- If weight loss goal: Focus on calorie density and satiety
+- If hypertension: Highlight sodium content
+
+Add a special "personalWarnings" array with warnings specific to THIS user.
+`
+    : '';
+
+  return `You are a friendly AI health assistant helping regular people (not doctors or scientists) understand food/medicine ingredients. Explain things like you're talking to a friend or family member.
+${personalizationSection}
 CRITICAL RULES:
 1. Use VERY SIMPLE language - imagine explaining to your grandmother
 2. NO scientific jargon - if you must use a technical term, explain it simply
@@ -16,10 +33,19 @@ OUTPUT FORMAT (JSON):
 {
   "verdict": "Safe" | "Caution" | "Avoid",
   "confidence": 0-100,
+  "personalizedForUser": true/false,
+  "detectedProductName": "Short product name like 'Chocolate Bar', 'Energy Drink', 'Cough Syrup' etc - max 3 words",
   "en": {
     "verdictLabel": "Good to go! / Be careful / Better avoid",
     "simpleSummary": "One simple sentence about this product",
     "whatIsThis": "What is this product? Simple explanation",
+    "personalWarnings": [
+      {
+        "title": "Warning specific to user's health profile",
+        "explanation": "Why this matters FOR THIS USER specifically",
+        "severity": "high"
+      }
+    ],
     "goodThings": [
       {
         "title": "Good thing name",
@@ -43,6 +69,13 @@ OUTPUT FORMAT (JSON):
     "verdictLabel": "सुरक्षित है / सावधानी रखें / इससे बचें",
     "simpleSummary": "इस प्रोडक्ट के बारे में एक आसान वाक्य",
     "whatIsThis": "यह क्या है? सरल शब्दों में",
+    "personalWarnings": [
+      {
+        "title": "आपके लिए विशेष चेतावनी",
+        "explanation": "यह आपके लिए क्यों महत्वपूर्ण है",
+        "severity": "high"
+      }
+    ],
     "goodThings": [
       {
         "title": "अच्छी बात",
@@ -70,10 +103,11 @@ IMPORTANT FOR HINDI:
 - Don't use heavy Sanskrit/formal Hindi
 
 Remember: You're a helpful friend explaining health stuff, not a textbook!`;
+};
 
 export async function POST(request) {
   try {
-    const { ingredients } = await request.json();
+    const { ingredients, userContext } = await request.json();
 
     if (!ingredients || ingredients.trim() === '') {
       return NextResponse.json(
@@ -91,6 +125,11 @@ export async function POST(request) {
       );
     }
 
+    const systemPrompt = getSystemPrompt(userContext);
+    const userMessage = userContext 
+      ? `Analyze these ingredients for a user with this health profile: ${userContext}\n\nIngredients:\n${ingredients}`
+      : `Analyze these ingredients and explain in simple terms (provide BOTH English and Hindi):\n\n${ingredients}`;
+
     const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -101,7 +140,7 @@ export async function POST(request) {
           {
             parts: [
               {
-                text: `${SYSTEM_PROMPT}\n\nAnalyze these ingredients and explain in simple terms (provide BOTH English and Hindi):\n\n${ingredients}`
+                text: `${systemPrompt}\n\n${userMessage}`
               }
             ]
           }

@@ -275,9 +275,14 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+    <div 
+      className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Scan ingredients"
+    >
       {/* Hidden canvas for photo capture */}
-      <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
       
       {/* Hidden file input for upload */}
       <input
@@ -287,12 +292,14 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
         capture="environment"
         onChange={handleFileUpload}
         className="hidden"
+        aria-label="Upload image file"
       />
       
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
         onClick={handleClose}
+        aria-hidden="true"
       />
 
       {/* Panel - Bottom sheet on mobile, centered modal on desktop */}
@@ -368,6 +375,17 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
                   </p>
                 </div>
               </div>
+
+              {/* Quick Demo Button */}
+              <button
+                onClick={() => {
+                  setIngredientText('Water, High Fructose Corn Syrup, Citric Acid, Natural Flavors, Sodium Benzoate (Preservative), Potassium Sorbate, Yellow 5, Yellow 6');
+                  setMode('text');
+                }}
+                className="w-full bg-purple-50 border border-purple-200 rounded-xl p-3 text-center hover:bg-purple-100 transition-colors"
+              >
+                <span className="text-purple-700 font-medium text-sm">✨ Try Demo Ingredients</span>
+              </button>
             </div>
           )}
 
@@ -555,7 +573,8 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
               <button
                 onClick={handleAnalyze}
                 disabled={!ingredientText.trim()}
-                className="w-full bg-emerald-600 text-white rounded-xl py-3.5 lg:py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors disabled:opacity-50 lg:text-lg"
+                aria-label="Analyze ingredients"
+                className="w-full bg-emerald-600 text-white rounded-xl py-3.5 lg:py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed lg:text-lg"
               >
                 Analyze Ingredients
               </button>
@@ -566,6 +585,7 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
                   setMode('select');
                 }}
                 className="w-full text-slate-500 py-2 text-sm"
+                aria-label="Go back to selection"
               >
                 ← Back
               </button>

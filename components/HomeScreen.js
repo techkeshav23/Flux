@@ -1,109 +1,111 @@
 'use client';
 
-import { History, Sparkles, Scan, Plus, Clock, Camera, FileText } from 'lucide-react';
+import { Sparkles, Scan, Plus, Camera, Heart, Zap } from 'lucide-react';
 
-export default function HomeScreen({ onScanClick }) {
+export default function HomeScreen({ onScanClick, hasPreferences }) {
   return (
     <div className="pb-24 lg:pb-8">
-      {/* Header - Full width on desktop */}
-      <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-700 px-6 pt-14 pb-8 lg:px-8 lg:pt-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="lg:flex lg:items-center lg:justify-between mb-8">
-            <div>
-              <p className="text-emerald-200 text-sm font-medium">AI Health Co-pilot</p>
-              <h1 className="text-white text-3xl lg:text-4xl font-bold mt-1">Flux Agent</h1>
-            </div>
+      {/* Top Header Bar - Gradient with curved bottom like reference */}
+      <div className="relative">
+        <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-500 px-6 pt-12 pb-16 lg:px-8 lg:pt-8 lg:pb-12 rounded-b-[2.5rem]">
+          <div className="max-w-4xl mx-auto">
+            {/* Main Title */}
+            <h1 className="text-white text-3xl lg:text-4xl font-bold italic">Flux Agent</h1>
+            <p className="text-white/80 text-base mt-1">Your AI health companion</p>
+            
             {/* Desktop CTA */}
             <button 
               onClick={onScanClick}
-              className="hidden lg:flex bg-white hover:bg-emerald-50 rounded-xl px-6 py-3 transition-colors items-center gap-3 shadow-lg"
+              className="hidden lg:flex mt-6 bg-white hover:bg-emerald-50 rounded-xl px-6 py-3 transition-colors items-center gap-3 shadow-lg"
             >
               <Plus className="w-5 h-5 text-emerald-700" />
               <span className="text-emerald-700 font-semibold">Analyze Ingredients</span>
             </button>
           </div>
-
-          {/* Feature Cards - Grid on desktop */}
-          <div className="grid lg:grid-cols-3 gap-4 mb-6">
-            {/* AI Description */}
-            <div className="bg-white/15 rounded-xl p-4 border border-white/20 backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">AI-Powered Analysis</p>
-                  <p className="text-emerald-100 text-sm mt-1">
-                    Understand <em>why</em> ingredients matter for your health.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Camera Feature */}
-            <div className="hidden lg:block bg-white/15 rounded-xl p-4 border border-white/20 backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <Camera className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Snap & Scan</p>
-                  <p className="text-emerald-100 text-sm mt-1">
-                    Take a photo of ingredients label for instant analysis.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bilingual Feature */}
-            <div className="hidden lg:block bg-white/15 rounded-xl p-4 border border-white/20 backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <FileText className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-white font-medium">Hindi & English</p>
-                  <p className="text-emerald-100 text-sm mt-1">
-                    Get results in your preferred language instantly.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Scan CTA */}
-          <button 
-            onClick={onScanClick}
-            className="lg:hidden w-full bg-white hover:bg-emerald-50 rounded-xl p-4 transition-colors flex items-center gap-4 group shadow-lg"
-          >
-            <div className="w-11 h-11 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left flex-1">
-              <p className="text-emerald-800 font-semibold">Analyze Ingredients</p>
-              <p className="text-emerald-600 text-sm">Scan or type to get AI insights</p>
-            </div>
-            <Scan className="w-5 h-5 text-emerald-500" />
-          </button>
         </div>
       </div>
 
-      {/* History Section - Coming Soon */}
-      <div className="px-5 lg:px-8 pt-6 max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <History className="w-4 h-4 text-slate-500" />
-            <h2 className="text-base font-semibold text-slate-800">Recent Scans</h2>
+      {/* Content below header */}
+      <div className="px-5 lg:px-8 -mt-8 max-w-4xl mx-auto relative z-10">
+        {/* Mobile Scan CTA Card */}
+        <button 
+          onClick={onScanClick}
+          className="lg:hidden w-full bg-white hover:bg-slate-50 rounded-2xl p-4 transition-colors flex items-center gap-4 group shadow-lg border border-slate-100"
+        >
+          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+            <Scan className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">
-            Coming Soon
-          </span>
-        </div>
+          <div className="text-left flex-1">
+            <p className="text-slate-800 font-semibold">Analyze Ingredients</p>
+            <p className="text-slate-500 text-sm">Scan or type to get AI insights</p>
+          </div>
+          <Plus className="w-5 h-5 text-emerald-500" />
+        </button>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-6 lg:p-8 text-center">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Clock className="w-5 h-5 text-slate-400" />
+        {/* Personalization Status */}
+        {hasPreferences && (
+          <div className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <Heart className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-slate-800 text-sm font-semibold">Personalized Mode Active</p>
+              <p className="text-slate-500 text-xs">Analysis tailored to your health profile</p>
+            </div>
+            <Sparkles className="w-5 h-5 text-purple-400" />
           </div>
-          <h3 className="text-slate-800 font-medium">Coming Soon</h3>
-          <p className="text-slate-500 text-sm mt-1.5 max-w-md mx-auto">
-            Smart history that learns from your preferences and provides personalized insights.
-          </p>
+        )}
+
+        {/* Feature Cards */}
+        <div className="mt-6 grid lg:grid-cols-3 gap-3">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-slate-800 font-medium text-sm">AI-Powered</p>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Understand <em>why</em> ingredients matter
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Camera className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-slate-800 font-medium text-sm">Snap & Scan</p>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Photo of label for instant analysis
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Heart className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-slate-800 font-medium text-sm">Personalized</p>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Tailored to your health profile
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+        {/* Quick Tip */}
+        <div className="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Zap className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-slate-800 text-sm font-semibold">Pro Tip</p>
+            <p className="text-slate-500 text-xs">For best results, capture the full ingredients list clearly</p>
+          </div>
+        </div>
+      </div>
   );
 }

@@ -11,12 +11,20 @@ import {
   ShieldAlert,
   Sparkles,
   Volume2,
-  VolumeX
+  VolumeX,
+  Share2,
+  Lightbulb,
+  Search,
+  ArrowRight
 } from 'lucide-react';
 
 // Clean Language Toggle
 const LanguageToggle = ({ currentLanguage, onSwitch }) => (
-  <div className="flex bg-white/90 backdrop-blur rounded-lg p-0.5 shadow-sm border border-slate-200">
+  <div 
+    className="flex bg-white/90 backdrop-blur rounded-lg p-0.5 shadow-sm border border-slate-200"
+    role="group"
+    aria-label="Language selection"
+  >
     <button
       onClick={() => onSwitch('en')}
       className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
@@ -282,6 +290,8 @@ export default function ResultsView({
   const whoShouldAvoid = langContent.whoShouldAvoid || result.whoShouldAvoid;
   const simpleAdvice = langContent.simpleAdvice || result.simpleAdvice || result.bottomLine;
   const dailyLifeTip = langContent.dailyLifeTip || result.dailyLifeTip;
+  const personalWarnings = langContent.personalWarnings || result.personalWarnings || [];
+  const isPersonalized = result.personalizedForUser || false;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto lg:bg-slate-900/50 lg:backdrop-blur-sm lg:flex lg:items-center lg:justify-center lg:p-8">
@@ -299,6 +309,21 @@ export default function ResultsView({
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
+            {/* Share Button */}
+            {typeof navigator !== 'undefined' && navigator.share && (
+              <button
+                onClick={() => {
+                  navigator.share({
+                    title: `Flux Analysis: ${productName || 'Product'}`,
+                    text: `Verdict: ${verdict} (${confidence}% confident)\n${simpleSummary || ''}\n\nAnalyzed with Flux Agent - AI Health Co-pilot`,
+                  }).catch(() => {});
+                }}
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/90 backdrop-blur shadow-sm border border-slate-200 text-slate-700 hover:bg-white lg:bg-slate-100 lg:border-0 transition-colors"
+                title="Share results"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+            )}
             {speechSupported && (
               <button
                 onClick={toggleSpeech}
@@ -331,6 +356,46 @@ export default function ResultsView({
               subtitle={whatIsThis}
             />
 
+            {/* Personalized Warnings - Only shown when user has health profile */}
+            {personalWarnings.length > 0 && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-purple-900">
+                    {currentLanguage === 'hi' ? '🎯 आपके लिए विशेष' : '🎯 Personalized for You'}
+                  </h3>
+                </div>
+                <div className="space-y-2">
+                  {personalWarnings.map((warning, i) => (
+                    <div key={i} className="flex items-start gap-2 bg-white/60 rounded-lg p-3">
+                      <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                        warning.severity === 'high' ? 'text-red-500' : 
+                        warning.severity === 'medium' ? 'text-amber-500' : 'text-purple-500'
+                      }`} />
+                      <div>
+                        <p className="font-medium text-slate-800 text-sm">{warning.title}</p>
+                        <p className="text-slate-600 text-xs mt-0.5">{warning.explanation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Personalized Badge */}
+            {isPersonalized && personalWarnings.length === 0 && (
+              <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                <span className="text-sm text-purple-700">
+                  {currentLanguage === 'hi' 
+                    ? 'आपकी स्वास्थ्य प्रोफाइल के अनुसार विश्लेषित' 
+                    : 'Analyzed based on your health profile'}
+                </span>
+              </div>
+            )}
+
             {goodThings.length > 0 && (
               <Section title={currentLanguage === 'hi' ? 'अच्छी बातें' : 'Benefits'} icon={Check}>
                 {goodThings.map((item, i) => (
@@ -362,6 +427,77 @@ export default function ResultsView({
             )}
 
             <AdviceCard advice={simpleAdvice} tip={dailyLifeTip} language={currentLanguage} />
+
+            {/* Proactive AI Suggestions - Only for Caution/Avoid */}
+            {(verdict === 'Caution' || verdict === 'Avoid') && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Lightbulb className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-blue-900">
+                    {currentLanguage === 'hi' ? '🤖 AI सुझाव' : '🤖 AI Suggests'}
+                  </h3>
+                </div>
+                <p className="text-blue-800 text-sm mb-3">
+                  {currentLanguage === 'hi' 
+                    ? 'क्या आप इसका स्वस्थ विकल्प खोजना चाहेंगे?'
+                    : 'Would you like me to suggest healthier alternatives?'
+                  }
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      const searchQuery = `healthy alternative to ${productName || 'this product'}`;
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+                    }}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                    {currentLanguage === 'hi' ? 'विकल्प खोजें' : 'Find Alternatives'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const tips = verdict === 'Avoid' 
+                        ? (currentLanguage === 'hi' 
+                            ? 'इस प्रोडक्ट से बचें। प्राकृतिक विकल्प चुनें।' 
+                            : 'Avoid this product. Look for natural alternatives with fewer additives.')
+                        : (currentLanguage === 'hi'
+                            ? 'कभी-कभी ठीक है। बेहतर विकल्पों की तलाश करें।'
+                            : 'Occasional use is fine. Consider exploring better options for regular use.');
+                      alert(tips);
+                    }}
+                    className="flex items-center gap-2 bg-white text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    {currentLanguage === 'hi' ? 'त्वरित सुझाव' : 'Quick Tip'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Safe Product Encouragement */}
+            {verdict === 'Safe' && (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-emerald-900 font-medium text-sm">
+                      {currentLanguage === 'hi' ? '🌟 शानदार चुनाव!' : '🌟 Great Choice!'}
+                    </p>
+                    <p className="text-emerald-700 text-xs mt-0.5">
+                      {currentLanguage === 'hi' 
+                        ? 'आप स्वस्थ विकल्प चुन रहे हैं। ऐसे ही जारी रखें!' 
+                        : "You're making healthy choices. Keep it up!"
+                      }
+                    </p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-emerald-400" />
+                </div>
+              </div>
+            )}
 
             <div className="flex items-start gap-2 px-1">
               <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
