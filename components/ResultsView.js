@@ -284,8 +284,8 @@ export default function ResultsView({
   const dailyLifeTip = langContent.dailyLifeTip || result.dailyLifeTip;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50 lg:bg-slate-900/50 lg:backdrop-blur-sm overflow-y-auto lg:flex lg:items-center lg:justify-center lg:p-8">
-      <div className="lg:bg-white lg:rounded-2xl lg:shadow-2xl lg:max-w-4xl lg:w-full lg:max-h-[90vh] lg:overflow-hidden lg:flex lg:flex-col">
+    <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto lg:bg-slate-900/50 lg:backdrop-blur-sm lg:flex lg:items-center lg:justify-center lg:p-8">
+      <div className="min-h-screen lg:min-h-0 bg-white lg:rounded-2xl lg:shadow-2xl lg:max-w-4xl lg:w-full lg:max-h-[90vh] lg:overflow-hidden lg:flex lg:flex-col">
         
         {/* Top Bar - Mobile floating, Desktop integrated */}
         <div className="fixed lg:static top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between lg:bg-white lg:border-b lg:border-slate-100">
@@ -323,63 +323,66 @@ export default function ResultsView({
           </div>
 
           {/* Content - Scrollable on desktop */}
-          <div className="px-4 py-5 space-y-4 lg:flex-1 lg:overflow-y-auto lg:px-6 lg:py-6">
+          <div className="px-4 py-5 pb-8 space-y-4 lg:flex-1 lg:overflow-y-auto lg:px-6 lg:py-6">
           
-          <InfoCard 
-            title={currentLanguage === 'hi' ? 'सारांश' : 'Summary'}
-            content={simpleSummary}
-            subtitle={whatIsThis}
-          />
+            <InfoCard 
+              title={currentLanguage === 'hi' ? 'सारांश' : 'Summary'}
+              content={simpleSummary}
+              subtitle={whatIsThis}
+            />
 
-          {goodThings.length > 0 && (
-            <Section title={currentLanguage === 'hi' ? 'अच्छी बातें' : 'Benefits'} icon={Check}>
-              {goodThings.map((item, i) => (
-                <ListItem key={i} title={item.title} description={item.explanation} type="good" />
-              ))}
-            </Section>
-          )}
+            {goodThings.length > 0 && (
+              <Section title={currentLanguage === 'hi' ? 'अच्छी बातें' : 'Benefits'} icon={Check}>
+                {goodThings.map((item, i) => (
+                  <ListItem key={i} title={item.title} description={item.explanation} type="good" />
+                ))}
+              </Section>
+            )}
 
-          {concerns.length > 0 && (
-            <Section title={currentLanguage === 'hi' ? 'चिंताएं' : 'Concerns'} icon={AlertTriangle}>
-              {concerns.map((item, i) => (
-                <ListItem key={i} title={item.title} description={item.explanation} type="bad" />
-              ))}
-            </Section>
-          )}
+            {concerns.length > 0 && (
+              <Section title={currentLanguage === 'hi' ? 'चिंताएं' : 'Concerns'} icon={AlertTriangle}>
+                {concerns.map((item, i) => (
+                  <ListItem key={i} title={item.title} description={item.explanation} type="bad" />
+                ))}
+              </Section>
+            )}
 
-          {whoShouldAvoid && (
-            <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-red-900 mb-1">
-                    {currentLanguage === 'hi' ? 'किसे बचना चाहिए' : 'Who should avoid'}
-                  </p>
-                  <p className="text-red-800 text-sm">{whoShouldAvoid}</p>
+            {whoShouldAvoid && (
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-900 mb-1">
+                      {currentLanguage === 'hi' ? 'किसे बचना चाहिए' : 'Who should avoid'}
+                    </p>
+                    <p className="text-red-800 text-sm">{whoShouldAvoid}</p>
+                  </div>
                 </div>
               </div>
+            )}
+
+            <AdviceCard advice={simpleAdvice} tip={dailyLifeTip} language={currentLanguage} />
+
+            <div className="flex items-start gap-2 px-1">
+              <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {currentLanguage === 'hi' 
+                  ? 'यह AI द्वारा सामान्य जानकारी है, डॉक्टर की सलाह नहीं।'
+                  : "AI-generated general info. Not medical advice."
+                }
+              </p>
             </div>
-          )}
 
-          <AdviceCard advice={simpleAdvice} tip={dailyLifeTip} language={currentLanguage} />
-
-          <div className="flex items-start gap-2 px-1">
-            <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {currentLanguage === 'hi' 
-                ? 'यह AI द्वारा सामान्य जानकारी है, डॉक्टर की सलाह नहीं।'
-                : "AI-generated general info. Not medical advice."
-              }
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2"
-          >
-            {currentLanguage === 'hi' ? 'नया स्कैन करें' : 'Scan Another'}
-            <ChevronRight className="w-4 h-4" />
-          </button>
+            <button
+              onClick={() => {
+                stopSpeaking();
+                onClose();
+              }}
+              className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2"
+            >
+              {currentLanguage === 'hi' ? 'नया स्कैन करें' : 'Scan Another'}
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
