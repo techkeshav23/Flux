@@ -60,15 +60,15 @@ const VerdictHeader = ({ verdict, verdictLabel, confidence }) => {
   const { bg, icon: Icon, iconBg } = config[verdict] || config.Caution;
 
   return (
-    <div className={`${bg} px-6 pt-16 pb-8`}>
-      <div className="max-w-lg mx-auto">
-        <div className={`w-16 h-16 ${iconBg} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-          <Icon className="w-8 h-8 text-white" strokeWidth={2.5} />
+    <div className={`${bg} px-6 pt-16 pb-8 lg:pt-8 lg:h-full lg:flex lg:flex-col lg:justify-center`}>
+      <div className="max-w-lg mx-auto lg:max-w-none">
+        <div className={`w-16 h-16 lg:w-20 lg:h-20 ${iconBg} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+          <Icon className="w-8 h-8 lg:w-10 lg:h-10 text-white" strokeWidth={2.5} />
         </div>
-        <h1 className="text-white text-2xl font-bold text-center mb-2">
+        <h1 className="text-white text-2xl lg:text-3xl font-bold text-center mb-2">
           {verdictLabel}
         </h1>
-        <div className="flex items-center justify-center gap-2 text-white/80 text-sm">
+        <div className="flex items-center justify-center gap-2 text-white/80 text-sm lg:text-base">
           <span>{confidence}% confident</span>
         </div>
       </div>
@@ -131,16 +131,16 @@ const AdviceCard = ({ advice, tip, language }) => {
   if (!advice) return null;
   
   return (
-    <div className="bg-slate-900 rounded-xl p-5">
+    <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl p-5">
       <div className="flex items-start gap-3">
-        <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+        <Sparkles className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm text-slate-400 mb-1">
+          <p className="text-sm text-emerald-200 mb-1">
             {language === 'hi' ? 'सलाह' : 'Advice'}
           </p>
           <p className="text-white font-medium leading-relaxed">{advice}</p>
           {tip && (
-            <p className="text-slate-400 text-sm mt-3 pt-3 border-t border-slate-700">
+            <p className="text-emerald-100 text-sm mt-3 pt-3 border-t border-white/20">
               💡 {tip}
             </p>
           )}
@@ -176,25 +176,28 @@ export default function ResultsView({
   const dailyLifeTip = langContent.dailyLifeTip || result.dailyLifeTip;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto">
-      <div className="max-w-lg mx-auto min-h-screen pb-6">
+    <div className="fixed inset-0 z-50 bg-slate-50 lg:bg-slate-900/50 lg:backdrop-blur-sm overflow-y-auto lg:flex lg:items-center lg:justify-center lg:p-8">
+      <div className="lg:bg-white lg:rounded-2xl lg:shadow-2xl lg:max-w-4xl lg:w-full lg:max-h-[90vh] lg:overflow-hidden lg:flex lg:flex-col">
         
-        {/* Top Bar */}
-        <div className="fixed top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between">
+        {/* Top Bar - Mobile floating, Desktop integrated */}
+        <div className="fixed lg:static top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between lg:bg-white lg:border-b lg:border-slate-100">
           <button
             onClick={onClose}
-            className="w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-slate-700 hover:bg-white transition-colors"
+            className="w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-slate-700 hover:bg-white transition-colors lg:shadow-none lg:bg-slate-100 lg:border-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <LanguageToggle currentLanguage={currentLanguage} onSwitch={onLanguageSwitch} />
         </div>
 
-        {/* Verdict Header */}
-        <VerdictHeader verdict={verdict} verdictLabel={verdictLabel} confidence={confidence} />
+        <div className="lg:flex lg:flex-1 lg:overflow-hidden">
+          {/* Verdict Header - Sidebar on desktop */}
+          <div className="lg:w-72 lg:flex-shrink-0">
+            <VerdictHeader verdict={verdict} verdictLabel={verdictLabel} confidence={confidence} />
+          </div>
 
-        {/* Content */}
-        <div className="px-4 py-5 space-y-4">
+          {/* Content - Scrollable on desktop */}
+          <div className="px-4 py-5 space-y-4 lg:flex-1 lg:overflow-y-auto lg:px-6 lg:py-6">
           
           <InfoCard 
             title={currentLanguage === 'hi' ? 'सारांश' : 'Summary'}
@@ -246,11 +249,12 @@ export default function ResultsView({
 
           <button
             onClick={onClose}
-            className="w-full bg-slate-900 text-white rounded-xl py-4 font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2"
           >
             {currentLanguage === 'hi' ? 'नया स्कैन करें' : 'Scan Another'}
             <ChevronRight className="w-4 h-4" />
           </button>
+          </div>
         </div>
       </div>
     </div>

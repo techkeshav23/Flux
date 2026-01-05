@@ -29,14 +29,14 @@ export default function AnalyzingOverlay({ isOpen }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-emerald-900/95 backdrop-blur-sm animate-fade-in">
       <div className="text-center px-8 max-w-sm">
         {/* Spinner */}
         <div className="relative w-16 h-16 mx-auto mb-6">
-          <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-          <div className="absolute inset-0 rounded-full border-2 border-t-emerald-400 animate-spin" />
-          <div className="absolute inset-3 rounded-full bg-slate-800 flex items-center justify-center">
-            <Search className="w-5 h-5 text-emerald-400" />
+          <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-t-white animate-spin" />
+          <div className="absolute inset-3 rounded-full bg-emerald-800 flex items-center justify-center">
+            <Search className="w-5 h-5 text-white" />
           </div>
         </div>
 
@@ -44,7 +44,7 @@ export default function AnalyzingOverlay({ isOpen }) {
         <h2 className="text-lg font-semibold text-white mb-1">
           Analyzing...
         </h2>
-        <p className="text-slate-400 text-sm">
+        <p className="text-emerald-200 text-sm">
           {steps[step].text}
         </p>
 
@@ -54,7 +54,7 @@ export default function AnalyzingOverlay({ isOpen }) {
             <div
               key={i}
               className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                i <= step ? 'bg-emerald-400' : 'bg-slate-600'
+                i <= step ? 'bg-white' : 'bg-emerald-700'
               }`}
             />
           ))}

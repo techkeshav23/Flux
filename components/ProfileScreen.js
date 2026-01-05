@@ -39,39 +39,41 @@ export default function ProfileScreen() {
   return (
     <div className="pb-24 lg:pb-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 px-5 pt-12 pb-8 rounded-b-3xl lg:rounded-3xl lg:mx-6 lg:mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-white text-xl lg:text-2xl font-bold">Profile</h1>
-          <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
-            <Settings className="w-5 h-5 text-white" />
-          </button>
-        </div>
-
-        {/* Profile Card - Responsive Layout */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
-              <User className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
-            </div>
-            <div>
-              <h2 className="text-white text-lg lg:text-xl font-semibold">Guest User</h2>
-              <p className="text-slate-400 text-sm">Health-conscious Explorer</p>
-            </div>
+      <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-700 px-5 pt-12 pb-8 lg:px-8 lg:pt-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-white text-xl lg:text-2xl font-bold">Profile</h1>
+            <button className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 transition-colors">
+              <Settings className="w-5 h-5 text-white" />
+            </button>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
-            <div className="bg-white/10 rounded-xl p-3 lg:px-6 text-center">
-              <p className="text-white text-lg lg:text-xl font-bold">12</p>
-              <p className="text-slate-400 text-xs">Scans</p>
+          {/* Profile Card - Responsive Layout */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <User className="w-8 h-8 lg:w-10 lg:h-10 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-white text-lg lg:text-xl font-semibold">Guest User</h2>
+                <p className="text-emerald-200 text-sm">Health-conscious Explorer</p>
+              </div>
             </div>
-            <div className="bg-white/10 rounded-xl p-3 lg:px-6 text-center">
-              <p className="text-emerald-400 text-lg lg:text-xl font-bold">8</p>
-              <p className="text-slate-400 text-xs">Safe</p>
-            </div>
-            <div className="bg-white/10 rounded-xl p-3 lg:px-6 text-center">
-              <p className="text-amber-400 text-lg lg:text-xl font-bold">4</p>
-              <p className="text-slate-400 text-xs">Caution</p>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-3 md:gap-4">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 lg:px-6 text-center border border-white/20">
+                <p className="text-white text-lg lg:text-xl font-bold">12</p>
+                <p className="text-emerald-200 text-xs">Scans</p>
+              </div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 lg:px-6 text-center border border-white/20">
+                <p className="text-white text-lg lg:text-xl font-bold">8</p>
+                <p className="text-emerald-200 text-xs">Safe</p>
+              </div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 lg:px-6 text-center border border-white/20">
+                <p className="text-amber-300 text-lg lg:text-xl font-bold">4</p>
+                <p className="text-emerald-200 text-xs">Caution</p>
+              </div>
             </div>
           </div>
         </div>

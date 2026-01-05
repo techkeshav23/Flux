@@ -70,16 +70,16 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen bg-slate-100 lg:bg-gradient-to-br lg:from-slate-100 lg:via-slate-50 lg:to-emerald-50">
+    <main className="min-h-screen bg-emerald-50/50 lg:bg-gradient-to-br lg:from-emerald-50 lg:via-white lg:to-teal-50">
       {/* Desktop Layout Wrapper */}
       <div className="flex min-h-screen">
         {/* Desktop Sidebar Navigation */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 xl:w-72 bg-white border-r border-slate-200 p-6 fixed h-full">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 xl:w-72 bg-white border-r border-emerald-100 p-6 fixed h-full">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <span className="text-white font-bold text-lg">F</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-800">Flux Agent</h1>
+            <h1 className="text-xl font-bold text-emerald-800">Flux Agent</h1>
           </div>
           
           <nav className="space-y-2 flex-1">
@@ -127,9 +127,9 @@ export default function Home() {
 
         {/* Main Content Area */}
         <div className="flex-1 lg:ml-64 xl:ml-72">
-          <div className="flex justify-center">
-            {/* App Shell Container - Responsive width */}
-            <div className="w-full max-w-md lg:max-w-3xl xl:max-w-5xl bg-white min-h-screen shadow-2xl lg:shadow-none lg:bg-transparent relative overflow-hidden">
+          <div className="w-full">
+            {/* App Shell Container - Full width on desktop */}
+            <div className="w-full bg-white min-h-screen lg:bg-transparent relative overflow-hidden">
               {/* Main Content */}
               {currentTab === 'home' && (
                 <HomeScreen 

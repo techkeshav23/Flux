@@ -11,7 +11,9 @@ import {
   Zap,
   RefreshCw,
   AlertCircle,
-  Upload
+  Upload,
+  Mic,
+  MicOff
 } from 'lucide-react';
 
 export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
@@ -22,11 +24,103 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
   const [cameraError, setCameraError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [extractionError, setExtractionError] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Check for speech recognition support
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      setVoiceSupported(!!SpeechRecognition);
+    }
+  }, []);
+
+  // Initialize speech recognition
+  const startVoiceInput = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in your browser. Try Chrome or Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-IN'; // Support both English and Hindi
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setIngredientText(prev => {
+          const newText = prev + (prev ? ' ' : '') + finalTranscript.trim();
+          return newText;
+        });
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      if (event.error === 'not-allowed') {
+        alert('Microphone access denied. Please allow microphone access.');
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, []);
+
+  const stopVoiceInput = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  }, []);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startVoiceInput();
+    }
+  };
+
+  // Cleanup on unmount or mode change
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [mode]);
 
   // Start camera when entering camera mode
   const startCamera = useCallback(async () => {
@@ -202,51 +296,53 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
       />
 
       {/* Panel - Bottom sheet on mobile, centered modal on desktop */}
-      <div className="relative w-full max-w-lg bg-white rounded-t-2xl lg:rounded-2xl animate-slide-up lg:animate-fade-in min-h-[70vh] lg:min-h-0 lg:max-h-[85vh] max-h-[85vh] overflow-hidden flex flex-col lg:shadow-2xl lg:m-4">
+      <div className="relative w-full max-w-lg lg:max-w-2xl bg-white rounded-t-2xl lg:rounded-2xl animate-slide-up lg:animate-fade-in min-h-[70vh] lg:min-h-0 lg:max-h-[85vh] max-h-[85vh] overflow-hidden flex flex-col lg:shadow-2xl lg:m-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <div className="flex items-center justify-between p-5 lg:p-6 border-b border-slate-100">
+          <h2 className="text-lg lg:text-xl font-semibold text-slate-900">
             {mode === 'select' ? 'Scan Ingredients' : mode === 'camera' ? 'Capture Photo' : 'Paste Ingredients'}
           </h2>
           <button 
             onClick={handleClose}
-            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+            className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
           >
-            <X className="w-4 h-4 text-slate-600" />
+            <X className="w-4 h-4 lg:w-5 lg:h-5 text-slate-600" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-5 lg:p-6">
           {mode === 'select' && (
-            <div className="space-y-4">
-              <p className="text-slate-600 text-center mb-6">
+            <div className="space-y-4 lg:space-y-5">
+              <p className="text-slate-600 text-center mb-6 lg:text-lg">
                 Choose how you'd like to input ingredients
               </p>
 
-              {/* Camera Option */}
-              <button
-                onClick={() => setMode('camera')}
-                className="w-full bg-slate-900 rounded-xl p-4 text-left group hover:bg-slate-800 transition-colors"
+              {/* Options Grid on Desktop */}
+              <div className="lg:grid lg:grid-cols-2 lg:gap-4 space-y-4 lg:space-y-0">
+                {/* Camera Option */}
+                <button
+                  onClick={() => setMode('camera')}
+                  className="w-full bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl p-4 lg:p-6 text-left group hover:from-emerald-500 hover:to-teal-600 transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
                     <Camera className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white font-semibold">Snap a Photo</h3>
-                    <p className="text-slate-400 text-sm mt-0.5">
+                    <p className="text-emerald-100 text-sm mt-0.5">
                       Point at the ingredients label
                     </p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-white/50" />
+                  <ArrowRight className="w-5 h-5 text-white/70" />
                 </div>
               </button>
 
               {/* Text Option */}
               <button
                 onClick={() => setMode('text')}
-                className="w-full bg-white border border-slate-200 rounded-xl p-4 text-left group hover:border-slate-300 hover:bg-slate-50 transition-colors"
+                className="w-full bg-white border border-slate-200 rounded-xl p-4 lg:p-6 text-left group hover:border-slate-300 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
@@ -261,12 +357,13 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
                   <ArrowRight className="w-5 h-5 text-slate-400" />
                 </div>
               </button>
+              </div>
 
               {/* AI Tip */}
-              <div className="bg-slate-50 rounded-xl p-4 mt-6">
+              <div className="bg-slate-50 rounded-xl p-4 mt-6 lg:mt-5">
                 <div className="flex items-start gap-3">
                   <Zap className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-slate-600 text-sm">
+                  <p className="text-slate-600 text-sm lg:text-base">
                     AI-powered analysis that reasons about health impact based on research.
                   </p>
                 </div>
@@ -275,7 +372,7 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
           )}
 
           {mode === 'camera' && (
-            <div className="space-y-4">
+            <div className="space-y-4 lg:max-w-md lg:mx-auto">
               {/* Camera Error State */}
               {cameraError && !capturedImage && (
                 <div className="bg-red-50 border border-red-100 rounded-xl p-4">
@@ -400,36 +497,74 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
           )}
 
           {mode === 'text' && (
-            <div className="space-y-4">
+            <div className="space-y-4 lg:max-w-lg lg:mx-auto">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Ingredients List
-                </label>
-                <textarea
-                  value={ingredientText}
-                  onChange={(e) => setIngredientText(e.target.value)}
-                  placeholder="Paste the ingredients here...
-
-Example: Water, sugar, citric acid, natural flavors..."
-                  className="w-full h-36 border border-slate-200 rounded-xl p-4 text-slate-700 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all resize-none"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm lg:text-base font-medium text-slate-700">
+                    Ingredients List
+                  </label>
+                  {voiceSupported && (
+                    <button
+                      onClick={toggleVoiceInput}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        isListening 
+                          ? 'bg-red-100 text-red-600 animate-pulse' 
+                          : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                      }`}
+                    >
+                      {isListening ? (
+                        <>
+                          <MicOff className="w-4 h-4" />
+                          Stop
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-4 h-4" />
+                          Voice
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <textarea
+                    value={ingredientText}
+                    onChange={(e) => setIngredientText(e.target.value)}
+                    placeholder={isListening ? "Listening... Speak the ingredients" : "Paste or speak the ingredients here...\n\nExample: Water, sugar, citric acid, natural flavors..."}
+                    className={`w-full h-36 lg:h-48 border rounded-xl p-4 text-slate-700 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all resize-none lg:text-base ${
+                      isListening ? 'border-red-300 bg-red-50/50' : 'border-slate-200'
+                    }`}
+                  />
+                  {isListening && (
+                    <div className="absolute bottom-3 right-3 flex items-center gap-2 text-red-500">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      </span>
+                      <span className="text-xs font-medium">Listening...</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2 text-slate-500 text-sm">
-                <Image className="w-4 h-4" />
-                <span>Tip: Copy text from a photo using your phone's camera</span>
+                <Mic className="w-4 h-4" />
+                <span>Tip: Use voice input to speak ingredients or paste from clipboard</span>
               </div>
 
               <button
                 onClick={handleAnalyze}
                 disabled={!ingredientText.trim()}
-                className="w-full bg-emerald-600 text-white rounded-xl py-3.5 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors disabled:opacity-50"
+                className="w-full bg-emerald-600 text-white rounded-xl py-3.5 lg:py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors disabled:opacity-50 lg:text-lg"
               >
                 Analyze Ingredients
               </button>
 
               <button
-                onClick={() => setMode('select')}
+                onClick={() => {
+                  stopVoiceInput();
+                  setMode('select');
+                }}
                 className="w-full text-slate-500 py-2 text-sm"
               >
                 ← Back
