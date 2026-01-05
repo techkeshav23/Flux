@@ -15,6 +15,7 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [currentProductName, setCurrentProductName] = useState('');
   const [analysisError, setAnalysisError] = useState(null);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   const handleScanClick = () => {
     setShowScanOverlay(true);
@@ -54,10 +55,16 @@ export default function Home() {
     }
   };
 
+  // Instant language switch - no API call needed!
+  const handleLanguageSwitch = (newLanguage) => {
+    setCurrentLanguage(newLanguage);
+  };
+
   const handleCloseResults = () => {
     setAnalysisResult(null);
     setCurrentProductName('');
     setAnalysisError(null);
+    setCurrentLanguage('en');
   };
 
 
@@ -155,6 +162,9 @@ export default function Home() {
                 result={analysisResult}
                 productName={currentProductName}
                 onClose={handleCloseResults}
+                currentLanguage={currentLanguage}
+                onLanguageSwitch={handleLanguageSwitch}
+                isLoading={isAnalyzing}
               />
             </div>
           </div>
