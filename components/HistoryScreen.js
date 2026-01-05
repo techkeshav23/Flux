@@ -52,75 +52,69 @@ const HistoryItem = ({ scan, onClick, onDelete }) => {
   const summary = scan.en?.simpleSummary || scan.simpleSummary || scan.summary || '';
   
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md hover:border-emerald-200 transition-all">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md hover:border-emerald-200 transition-all">
       <button
         onClick={() => onClick(scan)}
         className="w-full p-4 text-left"
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center flex-wrap gap-2 mb-1.5">
               <VerdictBadge verdict={scan.verdict} />
-              {scan.confidence && (
-                <span className="text-xs text-slate-400">{scan.confidence}%</span>
-              )}
               {scan.personalizedForUser && (
-                <span className="text-xs bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded">
-                  <Sparkles className="w-3 h-3 inline mr-0.5" />
+                <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-medium">
+                  <Sparkles className="w-2.5 h-2.5 inline mr-0.5" />
                   Personalized
                 </span>
               )}
             </div>
-            <h3 className="font-semibold text-slate-800 truncate">
+            <h3 className="font-semibold text-slate-800 text-sm truncate">
               {scan.productName || 'Scanned Product'}
             </h3>
-            <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+            <p className="text-xs text-slate-500 mt-1 line-clamp-1">
               {summary}
             </p>
-            <div className="flex items-center gap-1.5 mt-2 text-slate-400">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-xs">{scan.displayTime || 'Recently'}</span>
+            <div className="flex items-center gap-1.5 mt-1.5 text-slate-400">
+              <Clock className="w-3 h-3" />
+              <span className="text-[10px]">{scan.displayTime || 'Recently'}</span>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(scan.id);
+              }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <ChevronRight className="w-5 h-5 text-slate-300" />
+          </div>
         </div>
       </button>
-      
-      {/* Delete button */}
-      <div className="border-t border-slate-100 px-4 py-2 bg-slate-50/50">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(scan.id);
-          }}
-          className="text-xs text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1"
-        >
-          <Trash2 className="w-3 h-3" />
-          Remove
-        </button>
-      </div>
     </div>
   );
 };
 
-// Stats Card
+// Stats Card - Floating style like Profile page
 const StatsCard = ({ stats }) => (
-  <div className="grid grid-cols-4 gap-2 mb-6">
-    <div className="bg-white rounded-xl p-3 text-center border border-slate-100">
-      <p className="text-xl font-bold text-slate-800">{stats.total}</p>
-      <p className="text-xs text-slate-500">Total</p>
+  <div className="grid grid-cols-4 gap-2 -mt-4 mb-6 relative z-10">
+    <div className="bg-white rounded-2xl p-3 text-center shadow-md border border-slate-100">
+      <p className="text-lg font-bold text-slate-800">{stats.total}</p>
+      <p className="text-[10px] text-slate-500 font-medium">Total</p>
     </div>
-    <div className="bg-emerald-50 rounded-xl p-3 text-center border border-emerald-100">
-      <p className="text-xl font-bold text-emerald-600">{stats.safe}</p>
-      <p className="text-xs text-emerald-600">Safe</p>
+    <div className="bg-white rounded-2xl p-3 text-center shadow-md border border-emerald-100">
+      <p className="text-lg font-bold text-emerald-600">{stats.safe}</p>
+      <p className="text-[10px] text-emerald-600 font-medium">Safe</p>
     </div>
-    <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
-      <p className="text-xl font-bold text-amber-600">{stats.caution}</p>
-      <p className="text-xs text-amber-600">Caution</p>
+    <div className="bg-white rounded-2xl p-3 text-center shadow-md border border-amber-100">
+      <p className="text-lg font-bold text-amber-600">{stats.caution}</p>
+      <p className="text-[10px] text-amber-600 font-medium">Caution</p>
     </div>
-    <div className="bg-red-50 rounded-xl p-3 text-center border border-red-100">
-      <p className="text-xl font-bold text-red-600">{stats.avoid}</p>
-      <p className="text-xs text-red-600">Avoid</p>
+    <div className="bg-white rounded-2xl p-3 text-center shadow-md border border-red-100">
+      <p className="text-lg font-bold text-red-600">{stats.avoid}</p>
+      <p className="text-[10px] text-red-600 font-medium">Avoid</p>
     </div>
   </div>
 );
@@ -246,7 +240,7 @@ export default function HistoryScreen({
             <StatsCard stats={stats} />
 
             {/* Filter Tabs */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
               {[
                 { id: 'all', label: 'All', count: stats.total },
                 { id: 'safe', label: 'Safe', count: stats.safe },
@@ -256,10 +250,10 @@ export default function HistoryScreen({
                 <button
                   key={tab.id}
                   onClick={() => setFilter(tab.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                     filter === tab.id
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   {tab.label} ({tab.count})
@@ -289,14 +283,14 @@ export default function HistoryScreen({
             {(() => {
               const insight = getAIInsight(stats, history);
               return insight && (
-                <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-3 border border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
                       <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-purple-900 text-sm">Your Health Pattern</h3>
-                      <p className="text-purple-700 text-sm mt-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-purple-900 text-xs">Your Health Pattern</h3>
+                      <p className="text-purple-700 text-xs mt-0.5 line-clamp-2">
                         {insight.emoji} {insight.text}
                       </p>
                     </div>
