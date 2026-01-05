@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BottomNavigation from '@/components/BottomNavigation';
 import HomeScreen from '@/components/HomeScreen';
 import ProfileScreen from '@/components/ProfileScreen';
 import ScanOverlay from '@/components/ScanOverlay';
 import AnalyzingOverlay from '@/components/AnalyzingOverlay';
 import ResultsView from '@/components/ResultsView';
-import { mockHistory, mockAnalysisResults } from '@/lib/mockData';
 
 export default function Home() {
   const [currentTab, setCurrentTab] = useState('home');
@@ -15,12 +14,7 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [currentProductName, setCurrentProductName] = useState('');
-  const [history, setHistory] = useState([]);
-
-  // Load initial mock history
-  useEffect(() => {
-    setHistory(mockHistory);
-  }, []);
+  const [analysisError, setAnalysisError] = useState(null);
 
   const handleScanClick = () => {
     setShowScanOverlay(true);
@@ -30,59 +24,43 @@ export default function Home() {
     setShowScanOverlay(false);
   };
 
-  const handleAnalyze = (ingredients) => {
+  const handleAnalyze = async (ingredients) => {
     setShowScanOverlay(false);
     setIsAnalyzing(true);
+    setAnalysisError(null);
 
-    // Simulate AI analysis with different results based on ingredients
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      
-      // Determine which mock result to use based on ingredients content
-      let result;
-      const lowerIngredients = ingredients.toLowerCase();
-      
-      if (lowerIngredients.includes('organic') || lowerIngredients.includes('natural')) {
-        result = mockAnalysisResults.healthy;
-      } else if (lowerIngredients.includes('nitrite') || lowerIngredients.includes('artificial') || lowerIngredients.includes('hydrogenated')) {
-        result = mockAnalysisResults.processed;
-      } else {
-        result = mockAnalysisResults.default;
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ingredients }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
       }
 
+      const result = await response.json();
+      
       setCurrentProductName('Scanned Product');
       setAnalysisResult(result);
-    }, 2500);
-  };
-
-  const handleHistoryItemClick = (item) => {
-    setCurrentProductName(item.productName);
-    setAnalysisResult({
-      verdict: item.verdict,
-      oneLineSummary: item.oneLineSummary,
-      keyInsights: item.keyInsights,
-    });
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setAnalysisError('Failed to analyze ingredients. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleCloseResults = () => {
     setAnalysisResult(null);
     setCurrentProductName('');
+    setAnalysisError(null);
   };
 
-  const handleSaveToHistory = () => {
-    if (analysisResult && currentProductName) {
-      const newHistoryItem = {
-        id: Date.now(),
-        productName: currentProductName,
-        timestamp: 'Just now',
-        verdict: analysisResult.verdict,
-        oneLineSummary: analysisResult.oneLineSummary,
-        keyInsights: analysisResult.keyInsights,
-      };
-      setHistory([newHistoryItem, ...history]);
-      handleCloseResults();
-    }
-  };
+
 
   return (
     <main className="min-h-screen bg-slate-100 lg:bg-gradient-to-br lg:from-slate-100 lg:via-slate-50 lg:to-emerald-50">
@@ -148,8 +126,6 @@ export default function Home() {
               {/* Main Content */}
               {currentTab === 'home' && (
                 <HomeScreen 
-                  history={history} 
-                  onItemClick={handleHistoryItemClick}
                   onScanClick={handleScanClick}
                 />
               )}
@@ -179,7 +155,6 @@ export default function Home() {
                 result={analysisResult}
                 productName={currentProductName}
                 onClose={handleCloseResults}
-                onSaveToHistory={handleSaveToHistory}
               />
             </div>
           </div>

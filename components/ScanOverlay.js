@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   X, 
   Camera, 
@@ -8,44 +8,193 @@ import {
   Sparkles, 
   ArrowRight,
   Image,
-  Zap
+  Zap,
+  RefreshCw,
+  AlertCircle,
+  Upload
 } from 'lucide-react';
 
 export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
   const [mode, setMode] = useState('select'); // select, camera, text
   const [ingredientText, setIngredientText] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [extractionError, setExtractionError] = useState(null);
+  
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const handleCameraCapture = () => {
-    setIsCapturing(true);
-    // Simulate camera capture
-    setTimeout(() => {
-      setIsCapturing(false);
-      // Simulate captured ingredients
-      const simulatedIngredients = "Whole grain wheat flour, high fructose corn syrup, soybean oil, salt, baking soda, natural flavors, vitamin E (mixed tocopherols)";
-      setIngredientText(simulatedIngredients);
-      setMode('text');
-    }, 1500);
+  // Start camera when entering camera mode
+  const startCamera = useCallback(async () => {
+    try {
+      setCameraError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Use back camera on mobile
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+      }
+    } catch (error) {
+      console.error('Camera access error:', error);
+      if (error.name === 'NotAllowedError') {
+        setCameraError('Camera access denied. Please allow camera access in your browser settings.');
+      } else if (error.name === 'NotFoundError') {
+        setCameraError('No camera found on this device.');
+      } else {
+        setCameraError('Failed to access camera. Try uploading an image instead.');
+      }
+    }
+  }, []);
+
+  // Stop camera stream
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  // Handle mode changes
+  useEffect(() => {
+    if (mode === 'camera' && isOpen) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    
+    return () => stopCamera();
+  }, [mode, isOpen, startCamera, stopCamera]);
+
+  // Capture photo from video stream
+  const capturePhoto = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    setCapturedImage(imageData);
+    stopCamera();
+  }, [stopCamera]);
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setExtractionError('Please select an image file.');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCapturedImage(e.target.result);
+      setMode('camera'); // Show preview mode
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Process captured image with Gemini Vision
+  const processImage = async () => {
+    if (!capturedImage) return;
+    
+    setIsProcessing(true);
+    setExtractionError(null);
+    
+    try {
+      const response = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: capturedImage }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to process image');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.ingredients) {
+        setIngredientText(result.ingredients);
+        setCapturedImage(null);
+        setMode('text');
+      } else {
+        setExtractionError(result.notes || 'Could not extract ingredients. Please try again or paste manually.');
+      }
+    } catch (error) {
+      console.error('Image processing error:', error);
+      setExtractionError('Failed to process image. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Retake photo
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    setExtractionError(null);
+    startCamera();
   };
 
   const handleAnalyze = () => {
     if (ingredientText.trim()) {
       onAnalyze(ingredientText);
       setIngredientText('');
+      setCapturedImage(null);
+      setExtractionError(null);
       setMode('select');
     }
   };
 
   const handleClose = () => {
+    stopCamera();
     setMode('select');
     setIngredientText('');
+    setCapturedImage(null);
+    setCameraError(null);
+    setExtractionError(null);
     onClose();
+  };
+
+  // Hidden file input for upload
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+      {/* Hidden canvas for photo capture */}
+      <canvas ref={canvasRef} className="hidden" />
+      
+      {/* Hidden file input for upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+      
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
@@ -135,55 +284,143 @@ export default function ScanOverlay({ isOpen, onClose, onAnalyze }) {
 
           {mode === 'camera' && (
             <div className="space-y-4">
-              {/* Simulated Camera View */}
-              <div className="relative aspect-[4/3] bg-slate-900 rounded-2xl overflow-hidden">
-                {isCapturing ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin-slow" />
+              {/* Camera Error State */}
+              {cameraError && !capturedImage && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-800 font-medium text-sm">{cameraError}</p>
+                      <button
+                        onClick={triggerFileUpload}
+                        className="mt-3 flex items-center gap-2 text-red-600 hover:text-red-700 text-sm font-medium"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload an image instead
+                      </button>
+                    </div>
                   </div>
+                </div>
+              )}
+
+              {/* Live Camera or Captured Image */}
+              <div className="relative aspect-[4/3] bg-slate-900 rounded-2xl overflow-hidden">
+                {capturedImage ? (
+                  // Show captured image
+                  <img 
+                    src={capturedImage} 
+                    alt="Captured" 
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
+                  // Live camera feed
                   <>
-                    {/* Camera Grid */}
-                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Camera Grid Overlay */}
+                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
                       {[...Array(9)].map((_, i) => (
                         <div key={i} className="border border-white/10" />
                       ))}
                     </div>
                     {/* Focus Box */}
-                    <div className="absolute inset-8 border-2 border-emerald-400 rounded-lg">
+                    <div className="absolute inset-8 border-2 border-emerald-400 rounded-lg pointer-events-none">
                       <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-emerald-400" />
                       <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-emerald-400" />
                       <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-emerald-400" />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-emerald-400" />
                     </div>
                     {/* Instruction */}
-                    <div className="absolute bottom-4 left-0 right-0 text-center">
+                    <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
                       <p className="text-white/80 text-sm bg-black/30 inline-block px-4 py-2 rounded-full">
                         Position ingredients label in frame
                       </p>
                     </div>
                   </>
                 )}
+                
+                {/* Processing overlay */}
+                {isProcessing && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-12 h-12 border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-white font-medium">Reading ingredients...</p>
+                      <p className="text-white/70 text-sm mt-1">AI is extracting text from image</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Capture Button */}
-              <button
-                onClick={handleCameraCapture}
-                disabled={isCapturing}
-                className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCapturing ? (
-                  <>Processing...</>
-                ) : (
-                  <>
+              {/* Extraction Error */}
+              {extractionError && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-amber-800 text-sm">{extractionError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              {capturedImage ? (
+                <div className="space-y-3">
+                  <button
+                    onClick={processImage}
+                    disabled={isProcessing}
+                    className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <>Processing...</>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Extract Ingredients
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={retakePhoto}
+                    disabled={isProcessing}
+                    className="w-full bg-slate-100 text-slate-700 rounded-xl py-3 font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Retake Photo
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    onClick={capturePhoto}
+                    disabled={!!cameraError}
+                    className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     <Camera className="w-5 h-5" />
-                    Capture & Analyze
-                  </>
-                )}
-              </button>
+                    Capture Photo
+                  </button>
+                  
+                  <button
+                    onClick={triggerFileUpload}
+                    className="w-full bg-slate-100 text-slate-700 rounded-xl py-3 font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload from Gallery
+                  </button>
+                </div>
+              )}
 
               <button
-                onClick={() => setMode('select')}
+                onClick={() => {
+                  stopCamera();
+                  setCapturedImage(null);
+                  setCameraError(null);
+                  setExtractionError(null);
+                  setMode('select');
+                }}
                 className="w-full text-slate-600 py-2 font-medium"
               >
                 ← Back to options

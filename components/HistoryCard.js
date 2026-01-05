@@ -1,6 +1,6 @@
 'use client';
 
-import { Shield, Clock, ChevronRight, Leaf, AlertTriangle, XCircle } from 'lucide-react';
+import { Shield, Clock, ChevronRight, AlertTriangle, XCircle } from 'lucide-react';
 
 const VerdictBadge = ({ verdict }) => {
   const config = {
@@ -35,6 +35,9 @@ const VerdictBadge = ({ verdict }) => {
 };
 
 export default function HistoryCard({ item, onClick }) {
+  // Support both old and new data format
+  const summaryText = item.summary || item.oneLineSummary || item.bottomLine || '';
+  
   return (
     <button
       onClick={onClick}
@@ -44,12 +47,15 @@ export default function HistoryCard({ item, onClick }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <VerdictBadge verdict={item.verdict} />
+            {item.confidence && (
+              <span className="text-xs text-slate-400">{item.confidence}% confident</span>
+            )}
           </div>
           <h3 className="font-semibold text-slate-800 truncate group-hover:text-emerald-600 transition-colors lg:text-lg">
             {item.productName}
           </h3>
           <p className="text-sm text-slate-500 mt-1 line-clamp-2 lg:line-clamp-3">
-            {item.oneLineSummary}
+            {summaryText}
           </p>
           <div className="flex items-center gap-1.5 mt-3 text-slate-400">
             <Clock className="w-3.5 h-3.5" />
