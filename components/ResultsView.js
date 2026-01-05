@@ -1,237 +1,151 @@
 'use client';
 
 import { 
-  Shield, 
-  AlertTriangle, 
-  XCircle,
   ArrowLeft,
-  ThumbsUp,
-  ThumbsDown,
-  Lightbulb,
+  Check,
+  AlertTriangle,
+  X,
+  ChevronRight,
   Info,
-  Heart,
-  Ban
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
 
-// Language Toggle Button Component
-const LanguageToggle = ({ currentLanguage, onSwitch }) => {
-  return (
-    <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1">
-      <button
-        onClick={() => onSwitch('en')}
-        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-          currentLanguage === 'en' 
-            ? 'bg-white text-slate-800 shadow-sm' 
-            : 'text-white/80 hover:text-white'
-        }`}
-      >
-        EN
-      </button>
-      <button
-        onClick={() => onSwitch('hi')}
-        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-          currentLanguage === 'hi' 
-            ? 'bg-white text-slate-800 shadow-sm' 
-            : 'text-white/80 hover:text-white'
-        }`}
-      >
-        हिंदी
-      </button>
-    </div>
-  );
-};
+// Clean Language Toggle
+const LanguageToggle = ({ currentLanguage, onSwitch }) => (
+  <div className="flex bg-white/90 backdrop-blur rounded-lg p-0.5 shadow-sm border border-slate-200">
+    <button
+      onClick={() => onSwitch('en')}
+      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+        currentLanguage === 'en' 
+          ? 'bg-slate-900 text-white' 
+          : 'text-slate-600 hover:text-slate-900'
+      }`}
+    >
+      EN
+    </button>
+    <button
+      onClick={() => onSwitch('hi')}
+      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+        currentLanguage === 'hi' 
+          ? 'bg-slate-900 text-white' 
+          : 'text-slate-600 hover:text-slate-900'
+      }`}
+    >
+      हिंदी
+    </button>
+  </div>
+);
 
-// Verdict Badge with Emoji
-const VerdictBadge = ({ verdict, verdictEmoji, verdictLabel }) => {
+// Clean Verdict Header
+const VerdictHeader = ({ verdict, verdictLabel, confidence }) => {
   const config = {
     Safe: {
-      gradient: 'from-emerald-500 to-teal-600',
-      icon: Shield,
-      defaultEmoji: '✅',
-      defaultLabel: 'Good to go!',
+      bg: 'bg-emerald-600',
+      icon: Check,
+      iconBg: 'bg-emerald-500',
     },
     Caution: {
-      gradient: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-500',
       icon: AlertTriangle,
-      defaultEmoji: '⚠️',
-      defaultLabel: 'Be careful',
+      iconBg: 'bg-amber-400',
     },
     Avoid: {
-      gradient: 'from-red-500 to-rose-600',
-      icon: XCircle,
-      defaultEmoji: '❌',
-      defaultLabel: 'Better avoid',
+      bg: 'bg-red-600',
+      icon: X,
+      iconBg: 'bg-red-500',
     },
   };
 
-  const { gradient, defaultEmoji, defaultLabel } = config[verdict] || config.Caution;
-  const emoji = verdictEmoji || defaultEmoji;
-  const label = verdictLabel || defaultLabel;
+  const { bg, icon: Icon, iconBg } = config[verdict] || config.Caution;
 
   return (
-    <div className={`bg-gradient-to-br ${gradient} px-5 pt-16 pb-8 rounded-b-3xl lg:rounded-3xl lg:mx-6 lg:mt-6`}>
-      <div className="text-center max-w-xl mx-auto">
-        <div className="text-6xl lg:text-7xl mb-4">
-          {emoji}
+    <div className={`${bg} px-6 pt-16 pb-8`}>
+      <div className="max-w-lg mx-auto">
+        <div className={`w-16 h-16 ${iconBg} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+          <Icon className="w-8 h-8 text-white" strokeWidth={2.5} />
         </div>
-        <h1 className="text-white text-2xl lg:text-3xl font-bold mb-2">{label}</h1>
+        <h1 className="text-white text-2xl font-bold text-center mb-2">
+          {verdictLabel}
+        </h1>
+        <div className="flex items-center justify-center gap-2 text-white/80 text-sm">
+          <span>{confidence}% confident</span>
+        </div>
       </div>
     </div>
   );
 };
 
-// Simple Summary Card
-const SummaryCard = ({ simpleSummary, whatIsThis, language }) => {
+// Clean Info Card
+const InfoCard = ({ title, content, subtitle }) => {
+  if (!content) return null;
+  
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100">
+    <div className="bg-white rounded-xl border border-slate-200 p-4">
+      <h3 className="text-sm font-semibold text-slate-900 mb-2">{title}</h3>
+      <p className="text-slate-700 leading-relaxed">{content}</p>
+      {subtitle && (
+        <p className="text-slate-500 text-sm mt-2">{subtitle}</p>
+      )}
+    </div>
+  );
+};
+
+// Clean List Item
+const ListItem = ({ title, description, type = 'neutral' }) => {
+  const styles = {
+    good: { dot: 'bg-emerald-500', title: 'text-slate-900' },
+    bad: { dot: 'bg-red-500', title: 'text-slate-900' },
+    neutral: { dot: 'bg-slate-400', title: 'text-slate-900' },
+  };
+  const style = styles[type] || styles.neutral;
+
+  return (
+    <div className="flex gap-3 py-3 border-b border-slate-100 last:border-0">
+      <div className={`w-2 h-2 ${style.dot} rounded-full mt-2 flex-shrink-0`} />
+      <div className="flex-1 min-w-0">
+        <p className={`font-medium ${style.title}`}>{title}</p>
+        <p className="text-slate-600 text-sm mt-0.5">{description}</p>
+      </div>
+    </div>
+  );
+};
+
+// Clean Section
+const Section = ({ title, children, icon: Icon }) => {
+  if (!children) return null;
+  
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+        {Icon && <Icon className="w-4 h-4 text-slate-500" />}
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+      </div>
+      <div className="px-4">{children}</div>
+    </div>
+  );
+};
+
+// Advice Card
+const AdviceCard = ({ advice, tip, language }) => {
+  if (!advice) return null;
+  
+  return (
+    <div className="bg-slate-900 rounded-xl p-5">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Info className="w-5 h-5 text-blue-600" />
-        </div>
+        <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 className="font-semibold text-blue-900 mb-2">
-            {language === 'hi' ? 'सारांश' : 'Quick Summary'}
-          </h3>
-          <p className="text-blue-800 text-lg font-medium leading-relaxed">
-            {simpleSummary}
+          <p className="text-sm text-slate-400 mb-1">
+            {language === 'hi' ? 'सलाह' : 'Advice'}
           </p>
-          {whatIsThis && (
-            <p className="text-blue-700 text-sm mt-3 leading-relaxed">
-              {whatIsThis}
+          <p className="text-white font-medium leading-relaxed">{advice}</p>
+          {tip && (
+            <p className="text-slate-400 text-sm mt-3 pt-3 border-t border-slate-700">
+              💡 {tip}
             </p>
           )}
         </div>
       </div>
-    </div>
-  );
-};
-
-// Good Things Section
-const GoodThingsSection = ({ items, language }) => {
-  if (!items || items.length === 0) return null;
-  
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <ThumbsUp className="w-5 h-5 text-emerald-500" />
-        <h3 className="font-semibold text-slate-800">
-          {language === 'hi' ? 'अच्छी बातें 👍' : 'Good Things 👍'}
-        </h3>
-      </div>
-      <div className="space-y-3">
-        {items.map((item, i) => (
-          <div key={i} className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">{item.icon || '✨'}</span>
-              <div>
-                <h4 className="font-semibold text-emerald-800">{item.title}</h4>
-                <p className="text-emerald-700 text-sm mt-1">{item.explanation}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Concerns Section
-const ConcernsSection = ({ items, language }) => {
-  if (!items || items.length === 0) return null;
-  
-  const severityColors = {
-    low: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', title: 'text-amber-900' },
-    medium: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', title: 'text-orange-900' },
-    high: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', title: 'text-red-900' },
-  };
-  
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <ThumbsDown className="w-5 h-5 text-red-500" />
-        <h3 className="font-semibold text-slate-800">
-          {language === 'hi' ? 'चिंता की बातें ⚠️' : 'Concerns ⚠️'}
-        </h3>
-      </div>
-      <div className="space-y-3">
-        {items.map((item, i) => {
-          const colors = severityColors[item.severity] || severityColors.medium;
-          return (
-            <div key={i} className={`${colors.bg} ${colors.border} border rounded-xl p-4`}>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">{item.icon || '⚠️'}</span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className={`font-semibold ${colors.title}`}>{item.title}</h4>
-                    {item.severity === 'high' && (
-                      <span className="text-xs bg-red-200 text-red-700 px-2 py-0.5 rounded-full">
-                        {language === 'hi' ? 'गंभीर' : 'Serious'}
-                      </span>
-                    )}
-                  </div>
-                  <p className={`${colors.text} text-sm mt-1`}>{item.explanation}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// Who Should Avoid Section
-const WhoShouldAvoidSection = ({ content, language }) => {
-  if (!content) return null;
-  
-  return (
-    <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Ban className="w-5 h-5 text-purple-600" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-purple-900 mb-2">
-            {language === 'hi' ? 'किसे नहीं खाना चाहिए?' : 'Who should avoid this?'}
-          </h3>
-          <p className="text-purple-800 text-sm leading-relaxed">{content}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Simple Advice Card
-const SimpleAdviceCard = ({ advice, dailyTip, language }) => {
-  return (
-    <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-5">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Heart className="w-5 h-5 text-emerald-400" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-white mb-1">
-            {language === 'hi' ? 'मेरी सलाह 💡' : 'My Advice 💡'}
-          </h3>
-          <p className="text-slate-200 text-lg font-medium leading-relaxed">
-            "{advice}"
-          </p>
-        </div>
-      </div>
-      
-      {dailyTip && (
-        <div className="bg-white/10 rounded-xl p-4 mt-4">
-          <div className="flex items-start gap-2">
-            <Lightbulb className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-amber-300 text-xs font-medium mb-1">
-                {language === 'hi' ? 'Daily Tip' : 'Practical Tip'}
-              </p>
-              <p className="text-slate-300 text-sm">{dailyTip}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -245,16 +159,14 @@ export default function ResultsView({
 }) {
   if (!result) return null;
 
-  // Get language-specific content from bilingual response
   const langContent = result[currentLanguage] || result.en || {};
-  
-  const { 
-    verdict = 'Caution', 
-    confidence = 75,
-  } = result;
+  const { verdict = 'Caution', confidence = 75 } = result;
 
-  // Extract language-specific fields
-  const verdictLabel = langContent.verdictLabel || (verdict === 'Safe' ? 'Good to go!' : verdict === 'Avoid' ? 'Better avoid' : 'Be careful');
+  const verdictLabel = langContent.verdictLabel || 
+    (verdict === 'Safe' ? (currentLanguage === 'hi' ? 'सुरक्षित' : 'Safe to consume') : 
+     verdict === 'Avoid' ? (currentLanguage === 'hi' ? 'इससे बचें' : 'Better to avoid') : 
+     (currentLanguage === 'hi' ? 'सावधानी रखें' : 'Use with caution'));
+  
   const simpleSummary = langContent.simpleSummary || result.simpleSummary || result.summary;
   const whatIsThis = langContent.whatIsThis || result.whatIsThis;
   const goodThings = langContent.goodThings || result.goodThings || [];
@@ -263,82 +175,81 @@ export default function ResultsView({
   const simpleAdvice = langContent.simpleAdvice || result.simpleAdvice || result.bottomLine;
   const dailyLifeTip = langContent.dailyLifeTip || result.dailyLifeTip;
 
-  // Verdict emoji based on verdict
-  const verdictEmoji = verdict === 'Safe' ? '✅' : verdict === 'Avoid' ? '❌' : '⚠️';
-
   return (
-    <div className="fixed inset-0 z-50 bg-white lg:bg-slate-100/95 overflow-y-auto animate-fade-in">
-      <div className="max-w-md lg:max-w-2xl mx-auto min-h-screen relative lg:py-6">
-        <button
-          onClick={onClose}
-          className="absolute top-4 left-4 z-10 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors lg:bg-white lg:text-slate-600 lg:shadow-lg"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        <div className="absolute top-4 right-4 z-10">
-          <LanguageToggle 
-            currentLanguage={currentLanguage}
-            onSwitch={onLanguageSwitch}
-          />
+    <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto">
+      <div className="max-w-lg mx-auto min-h-screen pb-6">
+        
+        {/* Top Bar */}
+        <div className="fixed top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-slate-700 hover:bg-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <LanguageToggle currentLanguage={currentLanguage} onSwitch={onLanguageSwitch} />
         </div>
 
-        <VerdictBadge 
-          verdict={verdict} 
-          verdictEmoji={verdictEmoji}
-          verdictLabel={verdictLabel}
-        />
+        {/* Verdict Header */}
+        <VerdictHeader verdict={verdict} verdictLabel={verdictLabel} confidence={confidence} />
 
-        <div className="px-5 lg:px-6 py-6 space-y-5">
+        {/* Content */}
+        <div className="px-4 py-5 space-y-4">
           
-          <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-4">
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-slate-600">
-                  {currentLanguage === 'hi' ? 'विश्वास स्तर' : 'Confidence'}
-                </span>
-                <span className="text-sm font-semibold text-slate-800">{confidence}%</span>
-              </div>
-              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
-                  style={{ width: `${confidence}%` }}
-                />
+          <InfoCard 
+            title={currentLanguage === 'hi' ? 'सारांश' : 'Summary'}
+            content={simpleSummary}
+            subtitle={whatIsThis}
+          />
+
+          {goodThings.length > 0 && (
+            <Section title={currentLanguage === 'hi' ? 'अच्छी बातें' : 'Benefits'} icon={Check}>
+              {goodThings.map((item, i) => (
+                <ListItem key={i} title={item.title} description={item.explanation} type="good" />
+              ))}
+            </Section>
+          )}
+
+          {concerns.length > 0 && (
+            <Section title={currentLanguage === 'hi' ? 'चिंताएं' : 'Concerns'} icon={AlertTriangle}>
+              {concerns.map((item, i) => (
+                <ListItem key={i} title={item.title} description={item.explanation} type="bad" />
+              ))}
+            </Section>
+          )}
+
+          {whoShouldAvoid && (
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-red-900 mb-1">
+                    {currentLanguage === 'hi' ? 'किसे बचना चाहिए' : 'Who should avoid'}
+                  </p>
+                  <p className="text-red-800 text-sm">{whoShouldAvoid}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <SummaryCard 
-            simpleSummary={simpleSummary}
-            whatIsThis={whatIsThis}
-            language={currentLanguage}
-          />
+          <AdviceCard advice={simpleAdvice} tip={dailyLifeTip} language={currentLanguage} />
 
-          <GoodThingsSection items={goodThings} language={currentLanguage} />
-          <ConcernsSection items={concerns} language={currentLanguage} />
-          <WhoShouldAvoidSection content={whoShouldAvoid} language={currentLanguage} />
-
-          <SimpleAdviceCard 
-            advice={simpleAdvice || "Check with a doctor if unsure."}
-            dailyTip={dailyLifeTip}
-            language={currentLanguage}
-          />
-
-          <div className="bg-slate-100 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 px-1">
+            <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-slate-500 leading-relaxed">
               {currentLanguage === 'hi' 
-                ? 'मैं एक AI हूं और सामान्य जानकारी दे रहा हूं। यह डॉक्टर की सलाह नहीं है। किसी भी स्वास्थ्य समस्या के लिए डॉक्टर से मिलें।'
-                : "I'm an AI giving general info. This is not medical advice. Please consult a doctor for any health concerns."
+                ? 'यह AI द्वारा सामान्य जानकारी है, डॉक्टर की सलाह नहीं।'
+                : "AI-generated general info. Not medical advice."
               }
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="w-full bg-emerald-600 text-white rounded-xl py-4 font-semibold hover:bg-emerald-700 transition-colors"
+            className="w-full bg-slate-900 text-white rounded-xl py-4 font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
           >
-            {currentLanguage === 'hi' ? 'और स्कैन करें' : 'Scan Another'}
+            {currentLanguage === 'hi' ? 'नया स्कैन करें' : 'Scan Another'}
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
