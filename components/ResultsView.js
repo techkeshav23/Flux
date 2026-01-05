@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowLeft,
   Check,
@@ -8,7 +9,9 @@ import {
   ChevronRight,
   Info,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 // Clean Language Toggle
@@ -157,6 +160,111 @@ export default function ResultsView({
   currentLanguage = 'en', 
   onLanguageSwitch
 }) {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [hasAutoSpoken, setHasAutoSpoken] = useState(false);
+
+  // Check for speech synthesis support
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSpeechSupported('speechSynthesis' in window);
+    }
+  }, []);
+
+  // Build the speech text based on current language
+  const getSpeechText = useCallback(() => {
+    if (!result) return '';
+    
+    const langContent = result[currentLanguage] || result.en || {};
+    const verdict = result.verdict || 'Caution';
+    
+    const verdictLabel = langContent.verdictLabel || 
+      (verdict === 'Safe' ? (currentLanguage === 'hi' ? 'सुरक्षित' : 'Safe to consume') : 
+       verdict === 'Avoid' ? (currentLanguage === 'hi' ? 'इससे बचें' : 'Better to avoid') : 
+       (currentLanguage === 'hi' ? 'सावधानी रखें' : 'Use with caution'));
+    
+    const summary = langContent.simpleSummary || result.simpleSummary || result.summary || '';
+    const advice = langContent.simpleAdvice || result.simpleAdvice || result.bottomLine || '';
+    
+    if (currentLanguage === 'hi') {
+      return `निर्णय: ${verdictLabel}। ${summary}। सलाह: ${advice}`;
+    } else {
+      return `Verdict: ${verdictLabel}. ${summary}. Advice: ${advice}`;
+    }
+  }, [result, currentLanguage]);
+
+  // Speak the results
+  const speakResults = useCallback(() => {
+    if (!speechSupported || !result) return;
+    
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const text = getSpeechText();
+    if (!text) return;
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-IN';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    window.speechSynthesis.speak(utterance);
+  }, [speechSupported, result, currentLanguage, getSpeechText]);
+
+  // Stop speaking
+  const stopSpeaking = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  }, []);
+
+  // Toggle speech
+  const toggleSpeech = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else {
+      speakResults();
+    }
+  };
+
+  // Auto-speak when results first appear
+  useEffect(() => {
+    if (result && speechSupported && !hasAutoSpoken) {
+      // Small delay to let the UI render first
+      const timer = setTimeout(() => {
+        speakResults();
+        setHasAutoSpoken(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [result, speechSupported, hasAutoSpoken, speakResults]);
+
+  // Re-speak when language changes
+  useEffect(() => {
+    if (result && speechSupported && hasAutoSpoken) {
+      speakResults();
+    }
+  }, [currentLanguage]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Reset auto-spoken flag when result changes
+  useEffect(() => {
+    setHasAutoSpoken(false);
+  }, [result]);
+
   if (!result) return null;
 
   const langContent = result[currentLanguage] || result.en || {};
@@ -182,12 +290,30 @@ export default function ResultsView({
         {/* Top Bar - Mobile floating, Desktop integrated */}
         <div className="fixed lg:static top-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between lg:bg-white lg:border-b lg:border-slate-100">
           <button
-            onClick={onClose}
+            onClick={() => {
+              stopSpeaking();
+              onClose();
+            }}
             className="w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-slate-700 hover:bg-white transition-colors lg:shadow-none lg:bg-slate-100 lg:border-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <LanguageToggle currentLanguage={currentLanguage} onSwitch={onLanguageSwitch} />
+          <div className="flex items-center gap-2">
+            {speechSupported && (
+              <button
+                onClick={toggleSpeech}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  isSpeaking 
+                    ? 'bg-emerald-500 text-white animate-pulse' 
+                    : 'bg-white/90 backdrop-blur shadow-sm border border-slate-200 text-slate-700 hover:bg-white lg:bg-slate-100 lg:border-0'
+                }`}
+                title={isSpeaking ? 'Stop speaking' : 'Listen to results'}
+              >
+                {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+            )}
+            <LanguageToggle currentLanguage={currentLanguage} onSwitch={onLanguageSwitch} />
+          </div>
         </div>
 
         <div className="lg:flex lg:flex-1 lg:overflow-hidden">
