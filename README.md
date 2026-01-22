@@ -3,7 +3,7 @@
 > **Reimagining how consumers understand food ingredients using an AI-native approach.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
-[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Flash-blue?logo=google)](https://ai.google.dev/)
+[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Flash%20Lite-blue?logo=google)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 
 ---
@@ -73,7 +73,7 @@ Food labels are optimized for **regulatory compliance**, not human understanding
             │                          │
             ▼                          ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Gemini 2.5 Flash (Google AI)               │
+│              Gemini 2.5 Flash Lite (Google AI)          │
 │  - Vision OCR for label reading                         │
 │  - Reasoning about health impact                        │
 │  - Bilingual response generation                        │
@@ -126,7 +126,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 - **Instant**: No network latency for preferences
 - **Demo reliability**: Works offline, no backend dependencies
 
-### Why Gemini 2.5 Flash?
+### Why Gemini 2.5 Flash Lite?
 - Fast response times for real-time analysis
 - Strong reasoning capabilities
 - Excellent multilingual support (English + Hindi)
