@@ -211,12 +211,6 @@ flux-agent/
 
 ---
 
-## 👥 Team
-
-Built for **ENCODE x UDGIAM – Code To Innovate** hackathon in association with Thesys.
-
----
-
 ## 📄 License
 
 MIT License - feel free to use this for learning and inspiration!
